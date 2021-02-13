@@ -151,30 +151,34 @@ moveset = {"jab" : moveset.jab, "ftilt" : moveset.ftilt, "forwardtilt" : moveset
 
 @bot.command(aliases=list(ssbu_chars))
 async def character_command(ctx, *args):
-	#print(locals())
-	arguments = locals()["args"][0].lower()
 	char = ssbu_chars[ctx.invoked_with]
-	if arguments in list(moveset):
-		url = "https://ultimateframedata.com/" + char.replace(" ", "_").replace(".", "").replace("&", "and").replace("-", "_").lower() + ".php"
-		page = requests.get(url)
-		soup = BeautifulSoup(page.content, "html.parser")
-		try: # If this fails, probably a weird move
-			for x in soup.find_all("div", class_="movename", string=lambda y: y and moveset[arguments].title() in y): # Find all move containers
-				for z in x.parent.find_all("a"): # Find the hitbox images
-					if not z: # If this happens, the move likely has no animation, like with pokemon trainer switch
-						await send_message(ctx, "I couldn't find that move's animation.\nFeel free to check for yourself: <" + url + ">")
-						return
-					image = "https://ultimateframedata.com/" + z["data-featherlight"].replace(" ", "%20")
-					desc = "" # We will add to this variable and make it the description of the embed
-					for a in ["startup", "totalframes", "landinglag", "notes", "basedamage", "shieldlag", "shieldstun", "whichhitbox", "advantage", "activeframes"]: # Find all these attributes of a move
-						if not "--" in x.parent.find("div", class_=a).text.strip(): # If they don't exist, they are set as '--'
-							desc = desc + "\n" + attributes[a].replace("$a", x.parent.find("div", class_=a).text.strip()) # Append this to the embed description, 'prettified' with the attributes dict
-					
-					await send_message(ctx, embed=discord.Embed(title=char + " " + x.parent.find("div", class_="movename").text.strip(), description=desc.strip(), url=image).set_image(url="\n" + image))
-			return
-		except TypeError:
-			await send_message(ctx, "I couldn't find that move, it might be a special one.\nFeel free to check for yourself: <" + url + ">")
-			return
+	url = "https://ultimateframedata.com/" + char.replace(" ", "_").replace(".", "").replace("&", "and").replace("-", "_").lower() + ".php"
+	try: 
+		arguments = locals()["args"][0].lower()
+		if arguments in list(moveset):
+			page = requests.get(url)
+			soup = BeautifulSoup(page.content, "html.parser")
+			try: # If this fails, probably a weird move
+				for x in soup.find_all("div", class_="movename", string=lambda y: y and moveset[arguments].title() in y): # Find all move containers
+					for z in x.parent.find_all("a"): # Find the hitbox images
+						if not z: # If this happens, the move likely has no animation, like with pokemon trainer switch
+							await send_message(ctx, "I couldn't find that move's animation.\nFeel free to check for yourself: <" + url + ">")
+							return
+						image = "https://ultimateframedata.com/" + z["data-featherlight"].replace(" ", "%20")
+						desc = "" # We will add to this variable and make it the description of the embed
+						for a in ["startup", "totalframes", "landinglag", "notes", "basedamage", "shieldlag", "shieldstun", "whichhitbox", "advantage", "activeframes"]: # Find all these attributes of a move
+							if not "--" in x.parent.find("div", class_=a).text.strip(): # If they don't exist, they are set as '--'
+								desc = desc + "\n" + attributes[a].replace("$a", x.parent.find("div", class_=a).text.strip()) # Append this to the embed description, 'prettified' with the attributes dict
+						
+						await send_message(ctx, embed=discord.Embed(title=char + " " + x.parent.find("div", class_="movename").text.strip(), description=desc.strip(), url=image).set_image(url="\n" + image))
+				return
+			except TypeError:
+				await send_message(ctx, "I couldn't find that move, it might be a special one.\nFeel free to check for yourself: <" + url + ">")
+				return
+		else:
+			await send_message(ctx, "<" + url + ">")
+	except: # No argument was passed or an error occurred, just give the URL
+		await send_message(ctx, "<" + url + ">")
 
 @bot.command(name="framedata")
 async def framedata_command(ctx):
