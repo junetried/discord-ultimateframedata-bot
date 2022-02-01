@@ -105,6 +105,8 @@ class chars:
 	sephiroth = "Sephiroth"
 	pyra = "Pyra"
 	mythra = "Mythra"
+	kazuya = "Kazuya"
+	sora = "Sora"
 
 class moveset:
 	# Normals
@@ -190,7 +192,10 @@ async def ssbu_reload_command(ctx, *args):
 				if char.endswith(".php"):
 					char = char[:len(char)-4]
 
-				charpage = url + x.a["href"]
+				if x.a["href"].startswith("/"): # Thanks to Sora's `href` for needing this bit
+					charpage = url + x.a["href"]
+				else:
+					charpage = url + "/" + x.a["href"]
 				async with session.get(charpage) as response:
 					charpage = await response.text() # Get the character's page
 				charsoup = BeautifulSoup(charpage, "html.parser")
